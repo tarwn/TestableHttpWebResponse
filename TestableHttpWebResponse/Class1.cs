@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestableHttpWebRequest
+namespace TestableHttpWebResponse
 {
     public class Class1
     {
