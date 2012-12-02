@@ -13,6 +13,7 @@ namespace TestableHttpWebResponse
 	/// A fake HttpWebRequest that allows us to set one or more responses to receive in order and contains some basic
 	/// settable properties we need in a WebRequest
 	/// </summary>
+	/// <remarks>Based heavily on samples from here: http://blog.salamandersoft.co.uk/index.php/2009/10/how-to-mock-httpwebrequest-when-unit-testing/ </remarks>
 	public class TestableWebRequest : WebRequest
 	{
 		private Uri _uri;
