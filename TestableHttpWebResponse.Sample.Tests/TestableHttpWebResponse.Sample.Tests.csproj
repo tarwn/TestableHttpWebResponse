@@ -48,6 +48,16 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TestableHttpWebResponse.Sample\TestableHttpWebResponse.Sample.csproj">
+      <Project>{133a4464-eceb-4a27-accc-c3877320ce7a}</Project>
+      <Name>TestableHttpWebResponse.Sample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestableHttpWebResponse\TestableHttpWebResponse.csproj">
+      <Project>{9d7badf2-b79d-4227-a22c-83fce210d0ce}</Project>
+      <Name>TestableHttpWebResponse</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

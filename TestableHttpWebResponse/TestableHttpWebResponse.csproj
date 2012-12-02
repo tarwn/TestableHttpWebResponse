@@ -39,8 +39,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="ResponseSettings\ExceptionResponseSettings.cs" />
+    <Compile Include="ResponseSettings\HttpResponseSettings.cs" />
+    <Compile Include="ResponseSettings\BaseResponseSettings.cs" />
+    <Compile Include="TestableWebRequest.cs" />
+    <Compile Include="TestableWebRequestCreateFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestableHttpWebResponse.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

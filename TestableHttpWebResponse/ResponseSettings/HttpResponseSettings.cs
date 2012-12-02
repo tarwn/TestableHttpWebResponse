@@ -20,5 +20,7 @@ namespace TestableHttpWebResponse.ResponseSettings
 			ExpectException = expectWebExceptionToBeThrown;
 		}
 
+
+		public System.IO.Stream ResponseStream { get; set; }
 	}
 }
