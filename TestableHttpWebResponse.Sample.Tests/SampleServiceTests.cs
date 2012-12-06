@@ -22,6 +22,20 @@ namespace TestableHttpWebResponse.Sample.Tests
 		}
 
 		[Test]
+		public void ListRemoteStuff_ValidRequest_SetsVersionHeader()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuff(operation);
+
+			Assert.AreEqual("123-awesome", expectedRequest.Headers["version"]);
+		}
+
+		[Test]
 		public void ListRemoteStuff_ValidRequest_ReturnsSuccessfulResponse()
 		{
 			var operation = "ListOfStuff";
@@ -142,6 +156,20 @@ namespace TestableHttpWebResponse.Sample.Tests
 			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
+		}
+
+		[Test]
+		public void UploadSomething_ValidRequest_SetsVersionHeader()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			Assert.AreEqual("123-awesome", expectedRequest.Headers["version"]);
 		}
 
 		[Test]

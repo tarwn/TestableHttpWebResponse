@@ -18,6 +18,7 @@ namespace TestableHttpWebResponse
 	{
 		private Uri _uri;
 		private MemoryStream _requestStream;
+		private WebHeaderCollection _headers;
 
 		private Queue<BaseResponseSettings> _expectedResponses;
 
@@ -25,9 +26,22 @@ namespace TestableHttpWebResponse
 		{
 			_uri = uri;
 			_expectedResponses = new Queue<BaseResponseSettings>();
+			_headers = new WebHeaderCollection();
 		}
 
 		public override Uri RequestUri { get { return _uri; } }
+
+		public override WebHeaderCollection Headers
+		{
+			get
+			{
+				return _headers;
+			}
+			set
+			{
+				_headers = value;
+			}
+		}
 
 		public TestableWebRequest EnqueueResponse(HttpStatusCode httpStatusCode, string statusDescription, string responseContent, bool expectWebExceptionToBeThrown)
 		{

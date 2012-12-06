@@ -83,6 +83,7 @@ namespace TestableHttpWebResponse.Sample
 		{
 			var uri = new Uri(_baseUri, operation);
 			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
 			return SendRequest(request);
 		}
 
@@ -90,6 +91,7 @@ namespace TestableHttpWebResponse.Sample
 		{
 			var uri = new Uri(_baseUri, operation);
 			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
 			return SendData(request, data);
 		}
 
