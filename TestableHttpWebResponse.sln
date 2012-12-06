@@ -7,6 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestableHttpWebResponse.Sam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestableHttpWebResponse.Sample.Tests", "TestableHttpWebResponse.Sample.Tests\TestableHttpWebResponse.Sample.Tests.csproj", "{8DCB360D-8B7A-483D-B365-0F9CEADA04F4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{44B36963-604B-443C-AD48-9E1B3F84C091}"
+	ProjectSection(SolutionItems) = preProject
+		Readme.md = Readme.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
