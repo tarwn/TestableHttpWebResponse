@@ -20,13 +20,13 @@ namespace TestableHttpWebResponse
 			_preparedRequests = new Dictionary<string, TestableWebRequest>();
 		}
 
-		public void AddRequest(string absoluteUri, TestableWebRequest request)
+		public void AddRequest(TestableWebRequest request)
 		{
 			lock (_preparedRequests)
 			{
-				if (_preparedRequests.ContainsKey(absoluteUri))
-					_preparedRequests.Remove(absoluteUri);
-				_preparedRequests.Add(absoluteUri, request);
+				if (_preparedRequests.ContainsKey(request.RequestUri.AbsoluteUri))
+					_preparedRequests.Remove(request.RequestUri.AbsoluteUri);
+				_preparedRequests.Add(request.RequestUri.AbsoluteUri, request);
 			}
 		}
 

@@ -27,17 +27,21 @@ namespace TestableHttpWebResponse
 			_expectedResponses = new Queue<BaseResponseSettings>();
 		}
 
-		public void EnqueueResponse(HttpStatusCode httpStatusCode, string statusDescription, string responseContent, bool expectWebExceptionToBeThrown)
+		public override Uri RequestUri { get { return _uri; } }
+
+		public TestableWebRequest EnqueueResponse(HttpStatusCode httpStatusCode, string statusDescription, string responseContent, bool expectWebExceptionToBeThrown)
 		{
 			_expectedResponses.Enqueue(new HttpResponseSettings(httpStatusCode, statusDescription, responseContent, expectWebExceptionToBeThrown) 
 			{
 				ResponseStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(responseContent))
 			});
+			return this;
 		}
 
-		public void EnqueueResponse(Exception exception)
+		public TestableWebRequest EnqueueResponse(Exception exception)
 		{
 			_expectedResponses.Enqueue(new ExceptionResponseSettings(exception));
+			return this;
 		}
 
 		#region Overrides for WebRequest

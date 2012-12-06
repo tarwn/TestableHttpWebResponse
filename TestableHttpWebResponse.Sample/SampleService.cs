@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Practices.TransientFaultHandling;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,25 +12,34 @@ namespace TestableHttpWebResponse.Sample
 {
 	public class SampleService
 	{
-		public SampleService()
-		{ }
+		private RetryPolicy _retryPolicy;
+		private Uri _baseUri;
 
-		public ServiceResponse SendRequest(WebRequest request)
+		public SampleService(Uri baseUri)
 		{
-			try
-			{
-				var response = (HttpWebResponse)request.GetResponse();
-				var reader = new StreamReader(response.GetResponseStream());
-				var message = reader.ReadToEnd();
-				return new ServiceResponse() { IsSuccess = true, Message = message };
-			}
-			catch (WebException we)
-			{
-				throw MappedException(we);
-			}
+			_baseUri = baseUri;
+			_retryPolicy = new RetryPolicy<AwesomeRetryStrategy>(5, TimeSpan.FromMilliseconds(1));
 		}
 
-		public ServiceResponse SendData(WebRequest request, byte[] data)
+		private ServiceResponse SendRequest(WebRequest request)
+		{
+			return _retryPolicy.ExecuteAction<ServiceResponse>(() =>
+			{
+				try
+				{
+					var response = (HttpWebResponse)request.GetResponse();
+					var reader = new StreamReader(response.GetResponseStream());
+					var message = reader.ReadToEnd();
+					return new ServiceResponse() { IsSuccess = true, Message = message };
+				}
+				catch (WebException we)
+				{
+					throw MappedException(we);
+				}
+			});
+		}
+
+		private ServiceResponse SendData(WebRequest request, byte[] data)
 		{
 			try
 			{
@@ -66,6 +76,24 @@ namespace TestableHttpWebResponse.Sample
 			else
 				return new SampleServiceOutageException(we);
 		}
+
+		#region Sample API Call Implementations
+
+		public ServiceResponse ListRemoteStuff(string operation)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			return SendRequest(request);
+		}
+
+		public ServiceResponse UploadSomething(string operation, byte [] data)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			return SendData(request, data);
+		}
+
+		#endregion
 	}
 
 

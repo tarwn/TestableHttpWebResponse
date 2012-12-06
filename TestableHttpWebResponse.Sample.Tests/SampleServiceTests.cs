@@ -13,6 +13,8 @@ namespace TestableHttpWebResponse.Sample.Tests
 	[TestFixture]
 	public class SampleServiceTests
 	{
+		public Uri BaseUri { get { return new Uri("test://mydomain.com/api/"); } }
+
 		[TestFixtureSetUp]
 		public void TestFixtureSetup()
 		{
@@ -20,237 +22,242 @@ namespace TestableHttpWebResponse.Sample.Tests
 		}
 
 		[Test]
-		public void SendRequest_ValidRequest_ReturnsSuccessfulResponse()
+		public void ListRemoteStuff_ValidRequest_ReturnsSuccessfulResponse()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_ValidRequest_ReturnsSuccessfulResponse";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			Assert.IsTrue(response.IsSuccess);
 		}
 
 		[Test]
-		public void SendRequest_ValidRequest_ReturnsResponseContent()
+		public void ListRemoteStuff_ValidRequest_ReturnsResponseContent()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_ValidRequest_ReturnsResponseContent";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			Assert.AreEqual("Even More Success", response.Message);
 		}
 
 		[Test]
 		[ExpectedException(typeof(DohickyNotFoundException))]
-		public void SendRequest_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
+		public void ListRemoteStuff_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_404DohickeyNotFound_ThrowsDohickeyNotFoundException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "Dohicky not found", "I couldn't find your dohicky because I don't like you", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(GenericNotFoundException))]
-		public void SendRequest_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
+		public void ListRemoteStuff_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "OtherObjectType not found", "I couldn't find yuor other object because the name was unimaginative", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(ExampleOfAnotherUsefulException))]
-		public void SendRequest_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
+		public void ListRemoteStuff_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_403NoneShallPass_ThrowsExampleOfAnotherUsefulException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.Forbidden, "None shall pass", "Somethign else amusing", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
 		}
 
 		[Test]
-		[ExpectedException(typeof(TimeoutException))]
-		public void SendRequest_TimeoutOccurs_ThrowsRawTimeoutException()
+		public void ListRemoteStuff_TimeoutOccurs_TruesASecondTime()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_TimeoutOccurs_ThrowsRawTimeoutException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
-			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"));
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(HttpStatusCode.OK, "All Good", "Nothing to see, please move along", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
+
+			Assert.AreEqual("Nothing to see, please move along", response.Message);
+		}
+
+		[Test]
+		[ExpectedException(typeof(TimeoutException))]
+		public void ListRemoteStuff_SixTimeoutsOccur_FinallyThrowsTheException()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"));
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(SampleServiceOutageException))]
-		public void SendRequest_ServiceOutage_ThrowsSampleServiceOutage()
+		public void ListRemoteStuff_ServiceOutage_ThrowsSampleServiceOutage()
 		{
-			var expectedUri = "test://mydomain.com/SendRequest_ServiceOutage_ThrowsSampleServiceOutage";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(new WebException("I'm broke!", WebExceptionStatus.ConnectFailure));
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendRequest(request);
+			var response = service.ListRemoteStuff(operation);
 
 			// expect exception
 		}
 
 		[Test]
-		public void SendData_ValidRequest_ReturnsSuccessfulResponse()
+		public void UploadSomething_ValidRequest_ReturnsSuccessfulResponse()
 		{
-			var expectedUri = "test://mydomain.com/SendData_ValidRequest_ReturnsSuccessfulResponse";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.IsTrue(response.IsSuccess);
 		}
-		
-		[Test]
-		public void SendData_ValidRequest_ReturnsResponseContent()
-		{
-			var expectedUri = "test://mydomain.com/SendData_ValidRequest_ReturnsResponseContent";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
-			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+		[Test]
+		public void UploadSomething_ValidRequest_ReturnsResponseContent()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.AreEqual("Even More Success", response.Message);
 		}
 
 		[Test]
-		public void SendData_ValidRequest_UploadsMyAwesomeDataCorrectly()
+		public void UploadSomething_ValidRequest_UploadsMyAwesomeDataCorrectly()
 		{
-			var expectedUri = "test://mydomain.com/SendData_ValidRequest_ReturnsResponseContent";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
-			var uploadedData = ((TestableWebRequest)request).GetContent();
+			var uploadedData = ((TestableWebRequest)expectedRequest).GetContent();
 			Assert.AreEqual("My awesome data payload!", System.Text.Encoding.UTF8.GetString(uploadedData));
 		}
-		
+
 		[Test]
 		[ExpectedException(typeof(DohickyNotFoundException))]
-		public void SendData_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
+		public void UploadSomething_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
 		{
-			var expectedUri = "test://mydomain.com/SendData_404DohickeyNotFound_ThrowsDohickeyNotFoundException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "Dohicky not found", "I couldn't find your dohicky because I don't like you", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(GenericNotFoundException))]
-		public void SendData_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
+		public void UploadSomething_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
 		{
-			var expectedUri = "test://mydomain.com/SendData_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "OtherObjectType not found", "I couldn't find yuor other object because the name was unimaginative", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(ExampleOfAnotherUsefulException))]
-		public void SendData_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
+		public void UploadSomething_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
 		{
-			var expectedUri = "test://mydomain.com/SendData_403NoneShallPass_ThrowsExampleOfAnotherUsefulException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(HttpStatusCode.Forbidden, "None shall pass", "Somethign else amusing", true);
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
-		[ExpectedException(typeof(TimeoutException))]
-		public void SendData_TimeoutOccurs_ThrowsRawTimeoutException()
+		public void UploadSomething_TimeoutOccurs_ThrowsRawTimeoutException()
 		{
-			var expectedUri = "test://mydomain.com/SendData_TimeoutOccurs_ThrowsRawTimeoutException";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
-			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"));
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(HttpStatusCode.OK, "All Good", "Nothing to see, please move along", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
-			// expect exception
+			Assert.AreEqual("Nothing to see, please move along", response.Message);
 		}
 
 		[Test]
 		[ExpectedException(typeof(SampleServiceOutageException))]
-		public void SendData_ServiceOutage_ThrowsSampleServiceOutage()
+		public void UploadSomething_ServiceOutage_ThrowsSampleServiceOutage()
 		{
-			var expectedUri = "test://mydomain.com/SendData_ServiceOutage_ThrowsSampleServiceOutage";
-			var expectedRequest = new TestableWebRequest(new Uri(expectedUri));
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
 			expectedRequest.EnqueueResponse(new WebException("I'm broke!", WebExceptionStatus.ConnectFailure));
-			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedUri, expectedRequest);
-			var service = new SampleService();
-			var request = WebRequest.Create(expectedUri);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
 
-			var response = service.SendData(request, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
