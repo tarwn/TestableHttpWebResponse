@@ -11,3 +11,14 @@ rather than by manual test or talking to a live, networked resource.
 * TestableHttpWebResponse.Sample.Tests - Tests of the SampleService using the Testable classes 
 
 This work is licensed under the Creative Commons Attribution 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/.
+
+
+Other Sources
+=======================================
+
+Two other sources provided inspiration and/or code and are commented in their
+respective places in the source:
+
+* [How to mock HttpWebRequest When Unit Testing - salamandersoft.co.uk](http://blog.salamandersoft.co.uk/index.php/2009/10/how-to-mock-httpwebrequest-when-unit-testing/)
+* [Mocking WebResopnses from a WebRequest - StackOverflow](http://stackoverflow.com/questions/87200/mocking-webresponses-from-a-webrequest)
+
