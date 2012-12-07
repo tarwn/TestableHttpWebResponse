@@ -67,6 +67,30 @@ namespace TestableHttpWebResponse.Sample
 			});
 		}
 
+		private ServiceResponse SendRequestAsyncAwait(WebRequest request)
+		{
+			Func<Task<ServiceResponse>> getResponse = async () =>
+			{
+				var response = await request.GetResponseAsync();
+				var reader = new StreamReader(response.GetResponseStream());
+				var message = reader.ReadToEnd();
+				return new ServiceResponse() { IsSuccess = true, Message = message };
+			};
+
+			return _retryPolicy.ExecuteAction<ServiceResponse>(() =>
+			{
+				try
+				{
+					return getResponse().Result;
+				}
+				catch (AggregateException ae)
+				{
+					throw MappedAggregateException(ae);
+				}
+
+			});
+		}
+
 		private ServiceResponse SendData(WebRequest request, byte[] data)
 		{
 			try
@@ -105,6 +129,21 @@ namespace TestableHttpWebResponse.Sample
 			return SendRequestAsyncTPL(request);
 		}
 
+		private async Task<ServiceResponse> SendDataAsyncAwait(WebRequest request, byte[] data)
+		{
+			try
+			{
+				var stream = await request.GetRequestStreamAsync();
+				stream.Write(data, 0, data.Length);
+			}
+			catch (AggregateException ae)
+			{
+				throw MappedAggregateException(ae);
+			}
+
+			return SendRequestAsyncAwait(request);
+		}
+
 		private Exception MappedException(WebException we)
 		{
 			// map to custom exceptions
@@ -130,19 +169,26 @@ namespace TestableHttpWebResponse.Sample
 
 		private Exception MappedAggregateException(AggregateException ae)
 		{
-			if (ae.InnerExceptions.Any(ie => ie.InnerException != null && !(ie.InnerException is AggregateException)))
+			Exception nonAggregate;
+
+			if (ae.InnerExceptions.Any(ie => !(ie is AggregateException)))
 			{
-				var innerExc = ae.InnerExceptions.Where(ie => ie.InnerException != null && !(ie.InnerException is AggregateException))
+				nonAggregate = ae.InnerExceptions.Where(ie => !(ie is AggregateException))
+												 .First();
+			}
+			else if (ae.InnerExceptions.Any(ie => ie.InnerException != null && !(ie.InnerException is AggregateException)))
+			{
+				nonAggregate = ae.InnerExceptions.Where(ie => ie.InnerException != null && !(ie.InnerException is AggregateException))
 												 .Select(ie => ie.InnerException)
 												 .First();
-
-				if (innerExc is WebException)
-					return MappedException((WebException)innerExc);
-				else
-					return innerExc;
 			}
 			else
 				return ae;
+
+			if (nonAggregate is WebException)
+				return MappedException((WebException)nonAggregate);
+			else
+				return nonAggregate;
 		}
 
 		#region Sample API Call Implementations
@@ -163,6 +209,14 @@ namespace TestableHttpWebResponse.Sample
 			return SendRequestAsyncTPL(request);
 		}
 
+		public ServiceResponse ListRemoteStuffAsyncAwait(string operation)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
+			return SendRequestAsyncAwait(request);
+		}
+
 		public ServiceResponse UploadSomething(string operation, byte[] data)
 		{
 			var uri = new Uri(_baseUri, operation);
@@ -177,6 +231,21 @@ namespace TestableHttpWebResponse.Sample
 			var request = WebRequest.Create(uri);
 			request.Headers.Add("version", "123-awesome");
 			return SendDataAsyncTPL(request, data);
+		}
+
+		public ServiceResponse UploadSomethingAsyncAwait(string operation, byte[] data)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
+			try
+			{
+				return SendDataAsyncAwait(request, data).Result;
+			}
+			catch (AggregateException ae)
+			{
+				throw MappedAggregateException(ae);
+			}
 		}
 
 		#endregion
