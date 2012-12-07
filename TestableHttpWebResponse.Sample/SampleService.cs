@@ -248,7 +248,19 @@ namespace TestableHttpWebResponse.Sample
 			}
 		}
 
+		public object BonusMethod(string operation, string username, string password)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			request.Credentials = new NetworkCredential(username, password).GetCredential(uri, "Basic");
+			request.PreAuthenticate = true;
+			
+			return SendRequest(request);
+		}
+
 		#endregion
+
+
 	}
 
 

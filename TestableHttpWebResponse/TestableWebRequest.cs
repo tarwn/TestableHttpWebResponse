@@ -18,7 +18,9 @@ namespace TestableHttpWebResponse
 	{
 		private Uri _uri;
 		private MemoryStream _requestStream;
+		private ICredentials _credentials;
 		private WebHeaderCollection _headers;
+		private bool _preAuthenticate;
 
 		private Queue<BaseResponseSettings> _expectedResponses;
 
@@ -27,20 +29,6 @@ namespace TestableHttpWebResponse
 			_uri = uri;
 			_expectedResponses = new Queue<BaseResponseSettings>();
 			_headers = new WebHeaderCollection();
-		}
-
-		public override Uri RequestUri { get { return _uri; } }
-
-		public override WebHeaderCollection Headers
-		{
-			get
-			{
-				return _headers;
-			}
-			set
-			{
-				_headers = value;
-			}
 		}
 
 		public TestableWebRequest EnqueueResponse(HttpStatusCode httpStatusCode, string statusDescription, string responseContent, bool expectWebExceptionToBeThrown)
@@ -59,6 +47,44 @@ namespace TestableHttpWebResponse
 		}
 
 		#region Overrides for WebRequest
+
+		public override ICredentials Credentials
+		{
+			get
+			{
+				return _credentials;
+			}
+			set
+			{
+				_credentials = value;
+			}
+		}
+
+		public override WebHeaderCollection Headers
+		{
+			get
+			{
+				return _headers;
+			}
+			set
+			{
+				_headers = value;
+			}
+		}
+
+		public override bool PreAuthenticate
+		{
+			get
+			{
+				return _preAuthenticate;
+			}
+			set
+			{
+				_preAuthenticate = value;
+			}
+		}
+
+		public override Uri RequestUri { get { return _uri; } }
 
 		public override Stream GetRequestStream()
 		{

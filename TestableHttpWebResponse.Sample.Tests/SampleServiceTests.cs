@@ -841,5 +841,37 @@ namespace TestableHttpWebResponse.Sample.Tests
 		}
 
 		#endregion
+
+		#region Other Miscelaneous Properties
+
+		[Test]
+		public void BonusMethod_WithAuthentication_AssignsCredentialsToRequest()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.BonusMethod(operation, "AwesomeUser", "1234");
+
+			Assert.IsNotNull(expectedRequest.Credentials);
+		}
+
+		[Test]
+		public void BonusMethod_WithAuthentication_UsesPreAuthentication()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.BonusMethod(operation, "AwesomeUser", "1234");
+
+			Assert.IsTrue(expectedRequest.PreAuthenticate);
+		}
+
+		#endregion
 	}
 }
