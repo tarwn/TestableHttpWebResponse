@@ -158,6 +158,144 @@ namespace TestableHttpWebResponse.Sample.Tests
 			// expect exception
 		}
 
+
+		[Test]
+		public void ListRemoteStuffAsyncTPL_ValidRequest_SetsVersionHeader()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			Assert.AreEqual("123-awesome", expectedRequest.Headers["version"]);
+		}
+
+		[Test]
+		public void ListRemoteStuffAsyncTPL_ValidRequest_ReturnsSuccessfulResponse()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			Assert.IsTrue(response.IsSuccess);
+		}
+
+		[Test]
+		public void ListRemoteStuffAsyncTPL_ValidRequest_ReturnsResponseContent()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			Assert.AreEqual("Even More Success", response.Message);
+		}
+
+		[Test]
+		[ExpectedException(typeof(DohickyNotFoundException))]
+		public void ListRemoteStuffAsyncTPL_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "Dohicky not found", "I couldn't find your dohicky because I don't like you", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			// expect exception
+		}
+
+		[Test]
+		[ExpectedException(typeof(GenericNotFoundException))]
+		public void ListRemoteStuffAsyncTPL_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "OtherObjectType not found", "I couldn't find yuor other object because the name was unimaginative", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			// expect exception
+		}
+
+		[Test]
+		[ExpectedException(typeof(ExampleOfAnotherUsefulException))]
+		public void ListRemoteStuffAsyncTPL_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.Forbidden, "None shall pass", "Somethign else amusing", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			// expect exception
+		}
+
+		[Test]
+		public void ListRemoteStuffAsyncTPL_TimeoutOccurs_TruesASecondTime()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(HttpStatusCode.OK, "All Good", "Nothing to see, please move along", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			Assert.AreEqual("Nothing to see, please move along", response.Message);
+		}
+
+		[Test]
+		[ExpectedException(typeof(TimeoutException))]
+		public void ListRemoteStuffAsyncTPL_SixTimeoutsOccur_FinallyThrowsTheException()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(new TimeoutException("took too long, so sorry"));
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			// expect exception
+		}
+
+		[Test]
+		[ExpectedException(typeof(SampleServiceOutageException))]
+		public void ListRemoteStuffAsyncTPL_ServiceOutage_ThrowsSampleServiceOutage()
+		{
+			var operation = "ListOfStuff";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new WebException("I'm broke!", WebExceptionStatus.ConnectFailure));
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.ListRemoteStuffAsyncTPL(operation);
+
+			// expect exception
+		}
+
 		[Test]
 		public void UploadSomething_ValidRequest_SetsVersionHeader()
 		{

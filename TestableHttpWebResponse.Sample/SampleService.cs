@@ -39,6 +39,46 @@ namespace TestableHttpWebResponse.Sample
 			});
 		}
 
+		private ServiceResponse SendRequestAsyncTPL(WebRequest request)
+		{
+			return _retryPolicy.ExecuteAction<ServiceResponse>(() =>
+			{
+				var task = Task.Factory.FromAsync(
+					request.BeginGetResponse,
+					asyncResult => request.EndGetResponse(asyncResult),
+					null)
+				.ContinueWith((t) =>
+					{
+						var response = (HttpWebResponse)t.Result;
+						var reader = new StreamReader(response.GetResponseStream());
+						var message = reader.ReadToEnd();
+						return new ServiceResponse() { IsSuccess = true, Message = message };
+					});
+
+				try
+				{
+					return task.Result;
+				}
+				catch (AggregateException ae)
+				{
+					if (ae.InnerExceptions.Any(ie => ie.InnerException != null && !(ie.InnerException is AggregateException)))
+					{
+						var innerExc = ae.InnerExceptions.Where(ie => ie.InnerException != null && !(ie.InnerException is AggregateException))
+														 .Select(ie => ie.InnerException)
+														 .First();
+
+						if (innerExc is WebException)
+							throw MappedException((WebException)innerExc);
+						else
+							throw innerExc;
+					}
+					else
+						throw;
+				}
+
+			});
+		}
+
 		private ServiceResponse SendData(WebRequest request, byte[] data)
 		{
 			try
@@ -87,7 +127,15 @@ namespace TestableHttpWebResponse.Sample
 			return SendRequest(request);
 		}
 
-		public ServiceResponse UploadSomething(string operation, byte [] data)
+		public ServiceResponse ListRemoteStuffAsyncTPL(string operation)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
+			return SendRequestAsyncTPL(request);
+		}
+
+		public ServiceResponse UploadSomething(string operation, byte[] data)
 		{
 			var uri = new Uri(_baseUri, operation);
 			var request = WebRequest.Create(uri);
