@@ -21,6 +21,8 @@ namespace TestableHttpWebResponse.Sample.Tests
 			WebRequest.RegisterPrefix("test", TestableWebRequestCreateFactory.GetFactory());
 		}
 
+		#region Synchronous Methods 
+
 		[Test]
 		public void ListRemoteStuff_ValidRequest_SetsVersionHeader()
 		{
@@ -158,6 +160,141 @@ namespace TestableHttpWebResponse.Sample.Tests
 			// expect exception
 		}
 
+		[Test]
+		public void UploadSomething_ValidRequest_SetsVersionHeader()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			Assert.AreEqual("123-awesome", expectedRequest.Headers["version"]);
+		}
+
+		[Test]
+		public void UploadSomething_ValidRequest_ReturnsSuccessfulResponse()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			Assert.IsTrue(response.IsSuccess);
+		}
+
+		[Test]
+		public void UploadSomething_ValidRequest_ReturnsResponseContent()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			Assert.AreEqual("Even More Success", response.Message);
+		}
+
+		[Test]
+		public void UploadSomething_ValidRequest_UploadsMyAwesomeDataCorrectly()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.OK, "Success", "Even More Success", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			var uploadedData = ((TestableWebRequest)expectedRequest).GetContent();
+			Assert.AreEqual("My awesome data payload!", System.Text.Encoding.UTF8.GetString(uploadedData));
+		}
+
+		[Test]
+		[ExpectedException(typeof(DohickyNotFoundException))]
+		public void UploadSomething_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "Dohicky not found", "I couldn't find your dohicky because I don't like you", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			// expect exception
+		}
+
+		[Test]
+		[ExpectedException(typeof(GenericNotFoundException))]
+		public void UploadSomething_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.NotFound, "OtherObjectType not found", "I couldn't find yuor other object because the name was unimaginative", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			// expect exception
+		}
+
+		[Test]
+		[ExpectedException(typeof(ExampleOfAnotherUsefulException))]
+		public void UploadSomething_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(HttpStatusCode.Forbidden, "None shall pass", "Somethign else amusing", true);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			// expect exception
+		}
+
+		[Test]
+		public void UploadSomething_TimeoutOccurs_ThrowsRawTimeoutException()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new TimeoutException("took too long, so sorry"))
+						   .EnqueueResponse(HttpStatusCode.OK, "All Good", "Nothing to see, please move along", false);
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			Assert.AreEqual("Nothing to see, please move along", response.Message);
+		}
+
+		[Test]
+		[ExpectedException(typeof(SampleServiceOutageException))]
+		public void UploadSomething_ServiceOutage_ThrowsSampleServiceOutage()
+		{
+			var operation = "UploadSomething";
+			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
+			expectedRequest.EnqueueResponse(new WebException("I'm broke!", WebExceptionStatus.ConnectFailure));
+			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
+			var service = new SampleService(BaseUri);
+
+			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+
+			// expect exception
+		}
+
+		#endregion
+
+		#region Async TPL Methods
 
 		[Test]
 		public void ListRemoteStuffAsyncTPL_ValidRequest_SetsVersionHeader()
@@ -296,8 +433,9 @@ namespace TestableHttpWebResponse.Sample.Tests
 			// expect exception
 		}
 
+
 		[Test]
-		public void UploadSomething_ValidRequest_SetsVersionHeader()
+		public void UploadSomethingAsyncTPL_ValidRequest_SetsVersionHeader()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -305,13 +443,13 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.AreEqual("123-awesome", expectedRequest.Headers["version"]);
 		}
 
 		[Test]
-		public void UploadSomething_ValidRequest_ReturnsSuccessfulResponse()
+		public void UploadSomethingAsyncTPL_ValidRequest_ReturnsSuccessfulResponse()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -319,13 +457,13 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.IsTrue(response.IsSuccess);
 		}
 
 		[Test]
-		public void UploadSomething_ValidRequest_ReturnsResponseContent()
+		public void UploadSomethingAsyncTPL_ValidRequest_ReturnsResponseContent()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -333,13 +471,13 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.AreEqual("Even More Success", response.Message);
 		}
 
 		[Test]
-		public void UploadSomething_ValidRequest_UploadsMyAwesomeDataCorrectly()
+		public void UploadSomethingAsyncTPL_ValidRequest_UploadsMyAwesomeDataCorrectly()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -347,7 +485,7 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			var uploadedData = ((TestableWebRequest)expectedRequest).GetContent();
 			Assert.AreEqual("My awesome data payload!", System.Text.Encoding.UTF8.GetString(uploadedData));
@@ -355,7 +493,7 @@ namespace TestableHttpWebResponse.Sample.Tests
 
 		[Test]
 		[ExpectedException(typeof(DohickyNotFoundException))]
-		public void UploadSomething_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
+		public void UploadSomethingAsyncTPL_404DohickeyNotFound_ThrowsDohickeyNotFoundException()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -363,14 +501,14 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(GenericNotFoundException))]
-		public void UploadSomething_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
+		public void UploadSomethingAsyncTPL_404SomeOtherObjectNotFound_ThrowsGenericNotFoundException()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -378,14 +516,14 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
 		[ExpectedException(typeof(ExampleOfAnotherUsefulException))]
-		public void UploadSomething_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
+		public void UploadSomethingAsyncTPL_403NoneShallPass_ThrowsExampleOfAnotherUsefulException()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -393,13 +531,13 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
 
 		[Test]
-		public void UploadSomething_TimeoutOccurs_ThrowsRawTimeoutException()
+		public void UploadSomethingAsyncTPL_TimeoutOccurs_ThrowsRawTimeoutException()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -408,14 +546,14 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			Assert.AreEqual("Nothing to see, please move along", response.Message);
 		}
 
 		[Test]
 		[ExpectedException(typeof(SampleServiceOutageException))]
-		public void UploadSomething_ServiceOutage_ThrowsSampleServiceOutage()
+		public void UploadSomethingAsyncTPL_ServiceOutage_ThrowsSampleServiceOutage()
 		{
 			var operation = "UploadSomething";
 			var expectedRequest = new TestableWebRequest(new Uri(BaseUri, operation));
@@ -423,9 +561,11 @@ namespace TestableHttpWebResponse.Sample.Tests
 			TestableWebRequestCreateFactory.GetFactory().AddRequest(expectedRequest);
 			var service = new SampleService(BaseUri);
 
-			var response = service.UploadSomething(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
+			var response = service.UploadSomethingAsyncTPL(operation, System.Text.Encoding.UTF8.GetBytes("My awesome data payload!"));
 
 			// expect exception
 		}
+
+		#endregion
 	}
 }

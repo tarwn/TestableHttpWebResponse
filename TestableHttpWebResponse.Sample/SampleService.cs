@@ -61,19 +61,7 @@ namespace TestableHttpWebResponse.Sample
 				}
 				catch (AggregateException ae)
 				{
-					if (ae.InnerExceptions.Any(ie => ie.InnerException != null && !(ie.InnerException is AggregateException)))
-					{
-						var innerExc = ae.InnerExceptions.Where(ie => ie.InnerException != null && !(ie.InnerException is AggregateException))
-														 .Select(ie => ie.InnerException)
-														 .First();
-
-						if (innerExc is WebException)
-							throw MappedException((WebException)innerExc);
-						else
-							throw innerExc;
-					}
-					else
-						throw;
+					throw MappedAggregateException(ae);
 				}
 
 			});
@@ -92,6 +80,29 @@ namespace TestableHttpWebResponse.Sample
 			{
 				throw MappedException(we);
 			}
+		}
+
+		private ServiceResponse SendDataAsyncTPL(WebRequest request, byte[] data)
+		{
+			try
+			{
+				Task.Factory.FromAsync(
+					request.BeginGetRequestStream,
+					asyncResult => request.EndGetRequestStream(asyncResult),
+					null)
+				.ContinueWith((t) =>
+				{
+					var stream = (Stream)t.Result;
+					stream.Write(data, 0, data.Length);
+				})
+				.Wait();
+			}
+			catch (AggregateException ae)
+			{
+				throw MappedAggregateException(ae);
+			}
+
+			return SendRequestAsyncTPL(request);
 		}
 
 		private Exception MappedException(WebException we)
@@ -115,6 +126,23 @@ namespace TestableHttpWebResponse.Sample
 			}
 			else
 				return new SampleServiceOutageException(we);
+		}
+
+		private Exception MappedAggregateException(AggregateException ae)
+		{
+			if (ae.InnerExceptions.Any(ie => ie.InnerException != null && !(ie.InnerException is AggregateException)))
+			{
+				var innerExc = ae.InnerExceptions.Where(ie => ie.InnerException != null && !(ie.InnerException is AggregateException))
+												 .Select(ie => ie.InnerException)
+												 .First();
+
+				if (innerExc is WebException)
+					return MappedException((WebException)innerExc);
+				else
+					return innerExc;
+			}
+			else
+				return ae;
 		}
 
 		#region Sample API Call Implementations
@@ -141,6 +169,14 @@ namespace TestableHttpWebResponse.Sample
 			var request = WebRequest.Create(uri);
 			request.Headers.Add("version", "123-awesome");
 			return SendData(request, data);
+		}
+
+		public ServiceResponse UploadSomethingAsyncTPL(string operation, byte[] data)
+		{
+			var uri = new Uri(_baseUri, operation);
+			var request = WebRequest.Create(uri);
+			request.Headers.Add("version", "123-awesome");
+			return SendDataAsyncTPL(request, data);
 		}
 
 		#endregion

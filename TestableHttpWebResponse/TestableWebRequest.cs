@@ -68,7 +68,8 @@ namespace TestableHttpWebResponse
 
 		public override IAsyncResult BeginGetRequestStream(AsyncCallback callback, object state)
 		{
-			return base.BeginGetRequestStream(callback, state);
+			var function = new Func<object>(() => { return null; });
+			return function.BeginInvoke(callback, state);
 		}
 
 		public override Stream EndGetRequestStream(IAsyncResult asyncResult)
