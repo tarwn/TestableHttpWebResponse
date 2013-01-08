@@ -12,6 +12,7 @@ rather than by manual test or talking to a live, networked resource.
 
 This work is licensed under the Creative Commons Attribution 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by/3.0/.
 
+**Blog Post on the project:** [Testing the Not-So-Testable HttpWebResponse](http://blogs.lessthandot.com/index.php/DesktopDev/MSTech/CSharp/testing-httpwebresponse)
 
 Other Sources
 =======================================
