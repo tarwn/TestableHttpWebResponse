@@ -52,5 +52,10 @@ namespace TestableHttpWebResponse
 		}
 
 		#endregion
-	}
+
+        public void ClearRequests()
+        {
+            _preparedRequests.Clear();
+        }
+    }
 }

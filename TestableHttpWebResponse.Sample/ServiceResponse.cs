@@ -12,4 +12,9 @@ namespace TestableHttpWebResponse.Sample
 
 		public string Message { get; set; }
 	}
+
+    public class ServiceResponseWithData : ServiceResponse
+    {
+        public byte[] data { get; set; }
+    }
 }
